@@ -87,6 +87,8 @@ class MultipartContentParser
      */
     protected function parseFromStream($stream)
     {
+        $dataStr        = '';
+        $parsedData     = [];
         $data           = new Parameters();
         $files          = new Parameters();
         $partInProgress = false;
@@ -111,7 +113,8 @@ class MultipartContentParser
                     // Time to handle the data we've already parsed!
                     // Data
                     if (! $filename) {
-                        $data->set($name, rtrim($content, "\r\n"));
+                        $value = rtrim($content, "\r\n");
+                        $dataStr .= (empty($dataStr)?:'&').$name."=" .$value;
                     }
 
                     // File (successful upload so far)
@@ -261,6 +264,11 @@ class MultipartContentParser
 
         if ($files->count()) {
             $this->request->setFiles($files);
+        }
+
+        if(!empty($dataStr)){
+            parse_str($dataStr, $parsedData);
+            $data->fromArray($parsedData);
         }
 
         return $data->toArray();
